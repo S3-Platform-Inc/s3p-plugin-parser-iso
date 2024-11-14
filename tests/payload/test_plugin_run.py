@@ -13,7 +13,7 @@ from selenium.webdriver import Chrome
 from selenium.webdriver.ie.webdriver import WebDriver
 
 from tests.config.fixtures import fix_plugin_config, project_config
-from tests.payload.fixtures import execute_timeout
+# from tests.payload.fixtures import execute_timeout
 from s3p_sdk.types import S3PRefer, S3PDocument
 from s3p_sdk.plugin.types import SOURCE
 
@@ -59,9 +59,16 @@ class TestPayloadRun:
     def run_payload(self, payload: Type[S3PParserBase], driver: WebDriver, refer: S3PRefer, max_document: int,
                     timeout: int = 2):
         # !WARNING Требуется изменить путь до актуального парсера плагина
-        from src.s3_platform_plugin_template.template_payload import MyTemplateParser
-        if isinstance(payload, type(MyTemplateParser)):
-            _payload = payload(refer=refer, web_driver=driver, max_count_documents=max_document, last_document=None)
+        from src.s3p_plugin_parser_iso.iso import ISO
+
+        urls = ['https://www.iso.org/ics/03.060/x/',
+                'https://www.iso.org/ics/35.240.40/x/',
+                'https://www.iso.org/ics/35.240.15/x/',
+                'https://www.iso.org/ics/35.020/x/']
+
+        if isinstance(payload, type(ISO)):
+            _payload = payload(refer=refer, web_driver=driver, max_count_documents=max_document, last_document=None,
+                               urls=urls)
 
             @execute_timeout(timeout)
             def execute() -> tuple[S3PDocument, ...]:
