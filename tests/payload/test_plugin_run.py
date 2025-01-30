@@ -64,12 +64,18 @@ class TestPayloadRun:
             refer=refer,
             plugin=_plugin,
             restrictions=restrictions,
-            web_driver=driver
+            web_driver=driver,
+            feeds=[
+            'https://www.iso.org/contents/data/ics/03.060.rss',
+            'https://www.iso.org/contents/data/ics/35.020.rss',
+            'https://www.iso.org/contents/data/ics/35.240.15.rss',
+            'https://www.iso.org/contents/data/ics/35.240.40.rss',
+        ]
         )
         return _payload.content()
 
     # !WARNING: Изменить максимальное время работы плагина из логических соображений
-    @pytest.mark.timeout(30)
+    @pytest.mark.timeout(50)
     def test_all_cases_with_once_executing_parser(self, chrome_driver, fix_s3pRefer, fix_payload, fix_s3pPlugin):
         """
         Test Case
@@ -82,7 +88,7 @@ class TestPayloadRun:
             3. Каждый полученный документ должен обязательно содержать 3 ключевых поля (title, link, published)
 
         """
-        max_docs = 4
+        max_docs = 6
         docs = self.run_payload(fix_payload, fix_s3pRefer, fix_s3pPlugin, S3PPluginRestrictions(max_docs, None, None, None), chrome_driver)
 
         # 1. Количество материалов должно быть не меньше параметра максимального числа материалов.
@@ -98,7 +104,7 @@ class TestPayloadRun:
             assert el.published is not None and isinstance(el.published, datetime.datetime), f"Документ {el} должен обязательно содержать ключевое поле published"
             assert el.hash
 
-    @pytest.mark.timeout(20)
+    @pytest.mark.timeout(50)
     def test_date_restrictions(self, chrome_driver, fix_s3pRefer, fix_payload, fix_s3pPlugin):
         _boundary_date = datetime.datetime.now() - datetime.timedelta(days=2)
         docs = self.run_payload(fix_payload, fix_s3pRefer, fix_s3pPlugin, S3PPluginRestrictions(None, None, _boundary_date, None), chrome_driver)
