@@ -2,7 +2,7 @@ import datetime
 import time
 import dateparser
 from s3p_sdk.plugin.payloads.parsers import S3PParserBase
-from s3p_sdk.types import S3PRefer, S3PDocument
+from s3p_sdk.types import S3PRefer, S3PDocument, S3PPlugin, S3PPluginRestrictions
 from selenium.common import NoSuchElementException
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.by import By
@@ -19,19 +19,29 @@ class ISO(S3PParserBase):
     :_content_document: Это список объектов документа. При старте класса этот список должен обнулиться,
                         а затем по мере обработки источника - заполняться.
 
+    :self.feeds: list[str, ...]
+    Список потоков ISO для
+    1. ISO 03.060 Finances. Banking. Monetary systems. Insurance Including personal financial planning https://www.iso.org/ics/03.060/x/
+    https://www.iso.org/contents/data/ics/03.060.rss
+
+    2. ISO 35.020 Information technology (IT) in general Including general aspects of IT equipment https://www.iso.org/ics/35.020/x/
+    https://www.iso.org/contents/data/ics/35.020.rss
+
+    3. ISO 35.240.15 Identification cards. Chip cards. Biometrics Including application of cards for banking, trade, telecommunications, transport, etc. https://www.iso.org/ics/35.240.15/x/
+    https://www.iso.org/contents/data/ics/35.240.15.rss
+
+    4. ISO 35.240.40 IT applications in banking Including automatic banking facilities https://www.iso.org/ics/35.240.40/x/
+    https://www.iso.org/contents/data/ics/35.240.40.rss
 
     """
 
-    SOURCE_NAME = 'iso'
-
-    def __init__(self, urls: tuple | list, refer: S3PRefer, web_driver: WebDriver, max_count_documents: int = None,
-                 last_document: S3PDocument = None):
-        super().__init__(refer, max_count_documents, last_document)
+    def __init__(self, refer: S3PRefer, plugin: S3PPlugin, restrictions: S3PPluginRestrictions, web_driver: WebDriver, feeds: tuple | list):
+        super().__init__(refer, plugin, restrictions)
 
         # Тут должны быть инициализированы свойства, характерные для этого парсера. Например: WebDriver
         self._driver = web_driver
         self._wait = WebDriverWait(self._driver, timeout=20)
-        self.URLS = urls
+        self.feeds = feeds
 
     def _parse(self):
         """

@@ -7,7 +7,8 @@ from s3p_sdk.plugin.config import (
     trigger,
     MiddlewareConfig,
     modules,
-    payload
+    payload,
+    RestrictionsConfig
 )
 from s3p_sdk.plugin.types import SOURCE
 from s3p_sdk.module import (
@@ -19,7 +20,13 @@ config = PluginConfig(
         reference='iso',         # уникальное имя источника
         type=SOURCE,                            # Тип источника (SOURCE, ML, PIPELINE)
         files=['iso.py', ],        # Список файлов, которые будут использоваться в плагине (эти файлы будут сохраняться в платформе)
-        is_localstorage=False
+        is_localstorage=False,
+        restrictions=RestrictionsConfig(
+            maximum_materials=50,
+            to_last_material=None,
+            from_date=None,
+            to_date=None,
+        ),
     ),
     task=TaskConfig(
         trigger=trigger.TriggerConfig(
@@ -29,9 +36,8 @@ config = PluginConfig(
     ),
     middleware=MiddlewareConfig(
         modules=[
-            modules.TimezoneSafeControlConfig(order=1, is_critical=True),
-            modules.FilterOnlyNewDocumentWithDB(order=2, is_critical=True),
-            modules.SaveDocument(order=3, is_critical=True),
+            modules.TimezoneSafeControlConfig(1, True),
+            modules.SaveOnlyNewDocuments(2, True)
         ],
         bus=None,
     ),
@@ -42,9 +48,12 @@ config = PluginConfig(
             method='content',
             params=[
                 payload.entry.ModuleParamConfig(key='web_driver', module_name=WebDriver, bus=True),
-                payload.entry.ConstParamConfig(key='max_count_documents', value=50),
-                # payload.entry.ConstParamConfig(key='url',
-                #                                value='url to the source page'),
+                payload.entry.ConstParamConfig('feeds', [
+                    'https://www.iso.org/contents/data/ics/03.060.rss',
+                    'https://www.iso.org/contents/data/ics/35.020.rss',
+                    'https://www.iso.org/contents/data/ics/35.240.15.rss',
+                    'https://www.iso.org/contents/data/ics/35.240.40.rss',
+                ])
             ]
         )
     )
